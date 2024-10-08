@@ -80,10 +80,11 @@ func (s *Store) Has(key string) bool {
 	pathKey := s.PathTransformFunc(key)
 	fullPathWithRoot := fmt.Sprintf("%s/%s", s.Root, pathKey.FullPath())
 	_, err := os.Stat(fullPathWithRoot)
-	if errors.Is(err, fs.ErrNotExist) {
-		return false
-	}
-	return true
+	return !errors.Is(err, fs.ErrNotExist)
+}
+
+func (s *Store) Clear() error {
+	return os.RemoveAll(s.Root)
 }
 
 func (s *Store) Delete(key string) error {
@@ -93,6 +94,10 @@ func (s *Store) Delete(key string) error {
 	}()
 	firstPathNameWithRoot := fmt.Sprintf("%s/%s", s.Root, pathKey.FirstPathName())
 	return os.RemoveAll(firstPathNameWithRoot)
+}
+
+func (s *Store) Write(key string, r io.Reader) error {
+	return s.writeStream(key, r)
 }
 
 func (s *Store) Read(key string) (io.Reader, error) {
@@ -114,7 +119,8 @@ func (s *Store) readStream(key string) (io.ReadCloser, error) {
 
 func (s *Store) writeStream(key string, r io.Reader) error {
 	pathKey := s.PathTransformFunc(key)
-	pathNameWithRoot := fmt.Sprintf("%s/%s", s.Root, pathKey.FileName)
+	pathNameWithRoot := fmt.Sprintf("%s/%s", s.Root, pathKey.PathName)
+	fmt.Println(pathNameWithRoot)
 	if err := os.MkdirAll(pathNameWithRoot, os.ModePerm); err != nil {
 		return err
 	}
