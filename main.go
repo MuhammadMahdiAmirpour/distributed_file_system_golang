@@ -42,7 +42,7 @@ func main() {
 	// if err := s2.Store("tha.jpg", data); err != nil {
 	// 	fmt.Printf("Error: %v\n", err)
 	// }
-	time.Sleep(5 * time.Millisecond)
+	time.Sleep(500 * time.Millisecond)
 	r, err := s2.Get("tha.jpg")
 	if err != nil {
 		log.Fatal(err)

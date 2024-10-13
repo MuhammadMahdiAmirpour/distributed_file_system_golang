@@ -83,7 +83,7 @@ type MessageGetFile struct {
 
 func (s *FileServer) Get(key string) (io.Reader, error) {
 	if s.store.Has(key) {
-		fmt.Printf("[%s] servin file (%s) from local disk\n", s.Transport.Addr(), key)
+		fmt.Printf("[%s] serving file (%s) from local disk\n", s.Transport.Addr(), key)
 		_, r, err := s.store.Read(key)
 		return r, err
 	}
@@ -100,7 +100,7 @@ func (s *FileServer) Get(key string) (io.Reader, error) {
 	for _, peer := range s.peers {
 		// First read the file size so we can limit the amount of bytes that we read from the connection so it will not keep hanging
 		var fileSize int64
-		err := binary.Read(peer, binary.BigEndian, &fileSize)
+		err := binary.Read(peer, binary.LittleEndian, &fileSize)
 		if err != nil {
 			return nil, err
 		}
