@@ -1,10 +1,12 @@
-package main
+package storage
 
 import (
 	"bytes"
 	"fmt"
 	"io"
 	"testing"
+
+	"github.com/muhammadmahdiamirpour/distributed-file-system/crypto"
 )
 
 func TestPathTransformFunc(t *testing.T) {
@@ -22,7 +24,7 @@ func TestPathTransformFunc(t *testing.T) {
 
 func TestStore(t *testing.T) {
 	s := newStore()
-	id := generateID()
+	id := crypto.GenerateID()
 	defer teardown(t, s)
 	for i := 0; i < 50; i++ {
 		key := fmt.Sprintf("foo_%d", i)

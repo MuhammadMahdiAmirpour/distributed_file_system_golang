@@ -35,7 +35,7 @@ func (p *TCPPeer) Send(b []byte) error {
 	return err
 }
 
-// Dial implements the Transport interface
+// Dial implements the Link interface
 func (t *TCPTransport) Dial(addr string) error {
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
@@ -49,7 +49,7 @@ type TCPTransportOpts struct {
 	ListenAddr    string
 	HandshakeFunc HandshakeFunc
 	Decoder       Decoder
-	OnPeer        func(Peer) error
+	OnPeer        func(Node) error
 }
 
 type TCPTransport struct {
@@ -57,7 +57,7 @@ type TCPTransport struct {
 	listener net.Listener
 	rpcch    chan RPC
 	mu       sync.RWMutex
-	peers    map[net.Addr]Peer
+	peers    map[net.Addr]Node
 }
 
 func NewTCPTransport(opts TCPTransportOpts) *TCPTransport {
@@ -67,7 +67,7 @@ func NewTCPTransport(opts TCPTransportOpts) *TCPTransport {
 	}
 }
 
-// Addr implements Transport interface and returns the address. the transport is accepting connections.
+// Addr implements Link interface and returns the address. the transport is accepting connections.
 func (t *TCPTransport) Addr() string {
 	return t.ListenAddr
 }
@@ -104,7 +104,7 @@ func (t *TCPTransport) startAcceptLoop() {
 	}
 }
 
-// Close implements Transport interface
+// Close implements Link interface
 func (t *TCPTransport) Close() error {
 	return t.listener.Close()
 }

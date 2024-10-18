@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"bytes"
@@ -10,39 +10,41 @@ import (
 	"sync"
 	"time"
 
+	"github.com/muhammadmahdiamirpour/distributed-file-system/crypto"
 	"github.com/muhammadmahdiamirpour/distributed-file-system/p2p"
+	"github.com/muhammadmahdiamirpour/distributed-file-system/storage"
 )
 
 type FileServerOpts struct {
 	ID                string
 	EncKey            []byte
 	StorageRoot       string
-	PathTransformFunc PathTransformFunc
-	Transport         p2p.Transport
+	PathTransformFunc storage.PathTransformFunc
+	Transport         p2p.Link
 	BootstrapNodes    []string
 }
 
 type FileServer struct {
 	FileServerOpts
 	peerLock sync.Mutex
-	peers    map[string]p2p.Peer
-	store    *Store
+	peers    map[string]p2p.Node
+	Storage  *storage.Store
 	quitch   chan struct{}
 }
 
 func NewFileServer(opts FileServerOpts) *FileServer {
-	storeOpts := StoreOpts{
+	storeOpts := storage.StoreOpts{
 		Root:              opts.StorageRoot,
 		PathTransformFunc: opts.PathTransformFunc,
 	}
 	if len(opts.ID) == 0 {
-		opts.ID = generateID()
+		opts.ID = crypto.GenerateID()
 	}
 	return &FileServer{
 		FileServerOpts: opts,
-		store:          NewStore(storeOpts),
+		Storage:        storage.NewStore(storeOpts),
 		quitch:         make(chan struct{}),
-		peers:          make(map[string]p2p.Peer),
+		peers:          make(map[string]p2p.Node),
 	}
 }
 
@@ -78,16 +80,16 @@ type MessageGetFile struct {
 }
 
 func (s *FileServer) Get(key string) (io.Reader, error) {
-	if s.store.Has(s.ID, key) {
+	if s.Storage.Has(s.ID, key) {
 		fmt.Printf("[%s] serving file (%s) from local disk\n", s.Transport.Addr(), key)
-		_, r, err := s.store.Read(s.ID, key)
+		_, r, err := s.Storage.Read(s.ID, key)
 		return r, err
 	}
 	fmt.Printf("do not have file %s locally, fetching from network...\n", key)
 	msg := Message{
 		Payload: MessageGetFile{
 			ID:  s.ID,
-			Key: hashKey(key),
+			Key: crypto.HashKey(key),
 		},
 	}
 	if err := s.broadcast(&msg); err != nil {
@@ -102,14 +104,14 @@ func (s *FileServer) Get(key string) (io.Reader, error) {
 		if err != nil {
 			return nil, err
 		}
-		n, err := s.store.WriteDecrypt(s.EncKey, s.ID, key, io.LimitReader(peer, fileSize))
+		n, err := s.Storage.WriteDecrypt(s.EncKey, s.ID, key, io.LimitReader(peer, fileSize))
 		if err != nil {
 			return nil, err
 		}
 		fmt.Printf("[%s] received (%d) bytes over the network form (%s)\n", s.Transport.Addr(), n, peer.RemoteAddr())
 		peer.CloseStream()
 	}
-	_, r, err := s.store.Read(s.ID, key)
+	_, r, err := s.Storage.Read(s.ID, key)
 	return r, err
 }
 
@@ -118,14 +120,14 @@ func (s *FileServer) Store(key string, r io.Reader) error {
 		fileBuffer = new(bytes.Buffer)
 		tee        = io.TeeReader(r, fileBuffer)
 	)
-	size, err := s.store.Write(s.ID, key, tee)
+	size, err := s.Storage.Write(s.ID, key, tee)
 	if err != nil {
 		return err
 	}
 	msg := Message{
 		Payload: MessageStoreFile{
 			ID:   s.ID,
-			Key:  hashKey(key),
+			Key:  crypto.HashKey(key),
 			Size: size + 16,
 		},
 	}
@@ -142,7 +144,7 @@ func (s *FileServer) Store(key string, r io.Reader) error {
 	if err != nil {
 		return err
 	}
-	n, err := copyEncrypt(s.EncKey, fileBuffer, mw)
+	n, err := crypto.CopyEncrypt(s.EncKey, fileBuffer, mw)
 	if err != nil {
 		return err
 	}
@@ -154,7 +156,7 @@ func (s *FileServer) Stop() {
 	close(s.quitch)
 }
 
-func (s *FileServer) OnPeer(p p2p.Peer) error {
+func (s *FileServer) OnPeer(p p2p.Node) error {
 	s.peerLock.Lock()
 	defer s.peerLock.Unlock()
 	s.peers[p.RemoteAddr().String()] = p
@@ -202,7 +204,7 @@ func (s *FileServer) handleMessageStoreFile(from string, msg MessageStoreFile) e
 	if !ok {
 		return fmt.Errorf("peer (%s) could not be found in the peer list", from)
 	}
-	n, err := s.store.Write(msg.ID, msg.Key, io.LimitReader(peer, msg.Size))
+	n, err := s.Storage.Write(msg.ID, msg.Key, io.LimitReader(peer, msg.Size))
 	if err != nil {
 		return err
 	}
@@ -212,11 +214,11 @@ func (s *FileServer) handleMessageStoreFile(from string, msg MessageStoreFile) e
 }
 
 func (s *FileServer) handleMessageGetFile(from string, msg MessageGetFile) error {
-	if !s.store.Has(msg.ID, msg.Key) {
+	if !s.Storage.Has(msg.ID, msg.Key) {
 		return fmt.Errorf("[%s] need to serve file (%s) but it does not exist on disk", s.Transport.Addr(), msg.Key)
 	}
 	fmt.Printf("[%s] serving file (%s) over the network", s.Transport.Addr(), msg.Key)
-	fileSize, r, err := s.store.Read(msg.ID, msg.Key)
+	fileSize, r, err := s.Storage.Read(msg.ID, msg.Key)
 	if err != nil {
 		return err
 	}

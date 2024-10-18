@@ -1,4 +1,4 @@
-package main
+package storage
 
 import (
 	"crypto/sha1"
@@ -10,6 +10,8 @@ import (
 	"log"
 	"os"
 	"strings"
+
+	"github.com/muhammadmahdiamirpour/distributed-file-system/crypto"
 )
 
 const DefaultRootDirName = "dfs-net"
@@ -104,7 +106,7 @@ func (s *Store) WriteDecrypt(encKey []byte, id string, key string, r io.Reader) 
 	if err != nil {
 		return 0, err
 	}
-	n, err := copyDecrypt(encKey, r, f)
+	n, err := crypto.CopyDecrypt(encKey, r, f)
 	if err != nil {
 		return 0, err
 	}

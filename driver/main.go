@@ -7,24 +7,27 @@ import (
 	"log"
 	"time"
 
+	"github.com/muhammadmahdiamirpour/distributed-file-system/crypto"
 	"github.com/muhammadmahdiamirpour/distributed-file-system/p2p"
+	"github.com/muhammadmahdiamirpour/distributed-file-system/server"
+	"github.com/muhammadmahdiamirpour/distributed-file-system/storage"
 )
 
-func makeServer(listenAddr string, nodes ...string) *FileServer {
+func makeServer(listenAddr string, nodes ...string) *server.FileServer {
 	tcpTransportOpts := p2p.TCPTransportOpts{
 		ListenAddr:    listenAddr,
-		HandshakeFunc: p2p.NOPHHandshakeFunc,
+		HandshakeFunc: p2p.NOPHandshakeFunc,
 		Decoder:       p2p.DefaultDecoder{},
 	}
 	tcpTransport := p2p.NewTCPTransport(tcpTransportOpts)
-	fileServerOpts := FileServerOpts{
-		EncKey:            newEncryptionKey(),
+	fileServerOpts := server.FileServerOpts{
+		EncKey:            crypto.NewEncryptionKey(),
 		StorageRoot:       listenAddr + "_net",
-		PathTransformFunc: CASPathTransformFunc,
+		PathTransformFunc: storage.CASPathTransformFunc,
 		Transport:         tcpTransport,
 		BootstrapNodes:    nodes,
 	}
-	s := NewFileServer(fileServerOpts)
+	s := server.NewFileServer(fileServerOpts)
 	tcpTransport.OnPeer = s.OnPeer
 	return s
 }
@@ -51,7 +54,7 @@ func main() {
 		if err := s3.Store(key, data); err != nil {
 			fmt.Printf("Error: %v\n", err)
 		}
-		err := s3.store.Delete(s3.ID, key)
+		err := s3.Storage.Delete(s3.ID, key)
 		if err != nil {
 			return
 		}
