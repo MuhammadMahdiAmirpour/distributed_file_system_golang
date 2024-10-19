@@ -156,7 +156,7 @@ func (s *FileServer) Stop() {
 	close(s.quitch)
 }
 
-func (s *FileServer) OnPeer(p p2p.Node) error {
+func (s *FileServer) OnNode(p p2p.Node) error {
 	s.peerLock.Lock()
 	defer s.peerLock.Unlock()
 	s.peers[p.RemoteAddr().String()] = p

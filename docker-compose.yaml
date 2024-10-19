@@ -1,0 +1,44 @@
+version: '3.8'
+services:
+  node1:
+    build: .
+    ports:
+      - "3000:3000"
+    stdin_open: true
+    tty: true
+    environment:
+      NODE_PORT: ":3000"
+      BOOTSTRAP_NODES: ""
+      NODE_NAME: "node1"
+    networks:
+      - dht-network
+
+  node2:
+    build: .
+    ports:
+      - "7000:7000"
+    stdin_open: true
+    tty: true
+    environment:
+      NODE_PORT: ":7000"
+      BOOTSTRAP_NODES: "node1:3000"
+      NODE_NAME: "node2"
+    networks:
+      - dht-network
+
+  node3:
+    build: .
+    ports:
+      - "5000:5000"
+    stdin_open: true
+    tty: true
+    environment:
+      NODE_PORT: ":5000"
+      BOOTSTRAP_NODES: "node1:3000,node2:7000"
+      NODE_NAME: "node3"
+    networks:
+      - dht-network
+
+networks:
+  dht-network:
+    driver: bridge
