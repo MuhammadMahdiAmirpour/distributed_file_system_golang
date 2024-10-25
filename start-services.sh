@@ -12,8 +12,7 @@ sleep 2
 
 # Start node3
 docker-compose up -d node3 --build
-echo "Started node3, waiting 2 seconds..."
-sleep 2
+echo "Started node3"
 
 # Optional: Display logs
 docker-compose logs -f

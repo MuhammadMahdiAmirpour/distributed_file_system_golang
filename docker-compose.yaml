@@ -1,6 +1,7 @@
 version: '3.8'
 services:
   node1:
+    container_name: node1
     build: .
     ports:
       - "3000:3000"
@@ -14,6 +15,7 @@ services:
       - dht-network
 
   node2:
+    container_name: node2
     build: .
     ports:
       - "7000:7000"
@@ -27,6 +29,7 @@ services:
       - dht-network
 
   node3:
+    container_name: node3
     build: .
     ports:
       - "5000:5000"

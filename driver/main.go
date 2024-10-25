@@ -87,7 +87,7 @@ func runDriverCode(s *server.FileServer) {
 		fmt.Printf("iteration: %d\n", i)
 		fmt.Println("----------------------------------------------------------------------------------")
 		key := fmt.Sprintf("picture_%d.png", i)
-		data := bytes.NewReader([]byte("my big data file here!"))
+		data := bytes.NewReader([]byte("my very big data file here!"))
 		err := s.Store(key, data)
 		if err != nil {
 			fmt.Printf("Error writing file: %v\n", err)
