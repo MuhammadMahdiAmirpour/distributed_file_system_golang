@@ -8,6 +8,7 @@ const (
 	// IncomingStream is a constant used to signify that the incoming data should be treated as a continuous stream.
 	// It is represented by the byte value 0x2.
 	IncomingStream = 0x2
+	FileNotFound   = 0x3
 )
 
 // RPC is a structure representing a data container for transferring information over the network between nodes.

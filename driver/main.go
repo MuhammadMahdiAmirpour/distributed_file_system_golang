@@ -75,10 +75,8 @@ func main() {
 	if nodeName == "node3" {
 		time.Sleep(5 * time.Second) // Wait for other nodes to start
 		runDriverCode(s)
-	} else {
-		fmt.Printf("Node %s is listening on %s\n", nodeName, listenAddr)
-		select {} // Block indefinitely
 	}
+	select {} // Block indefinitely
 }
 
 func runDriverCode(s *server.FileServer) {
