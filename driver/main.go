@@ -112,8 +112,8 @@ func runDriverCode(s *server.FileServer) {
 		fmt.Println(string(b))
 
 		// Delete the file after successful read
-		if err := s.Storage.Delete(s.ID, key); err != nil {
-			log.Printf("Error deleting file: %v\n", err)
-		}
+		// if err := s.Storage.Delete(s.ID, key); err != nil {
+		// 	log.Printf("Error deleting file: %v\n", err)
+		// }
 	}
 }
