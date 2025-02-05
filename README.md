@@ -58,6 +58,11 @@ distributed_file_system_golang/
 - **Scalability**: Easy to add new storage nodes
 - **Data Replication**: Maintain multiple copies for reliability
 
+## 🎓 Acknowledgments
+
+This project was developed with the help of the following tutorial:
+- [Distributed File System in Go](https://www.youtube.com/watch?v=bymQakvTY40&t=18159s)
+
 ## 👨‍💻 Author
 
 **Muhammad Mahdi Amirpour**
