@@ -61,7 +61,7 @@ distributed_file_system_golang/
 ## 🎓 Acknowledgments
 
 This project was developed with the help of the following tutorial:
-- [Distributed File System in Go](https://www.youtube.com/watch?v=bymQakvTY40&t=18159s)
+- [Distributed File System in Go](https://www.youtube.com/watch?v=bymQakvTY40)
 
 ## 👨‍💻 Author
 
